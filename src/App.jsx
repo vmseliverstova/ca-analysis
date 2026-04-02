@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchCountries, fetchCA, fetchSavings, fetchInvestment } from './api/worldbank';
 import { COLORS } from './components/CAChart';
+import { track } from './analytics';
 import EducationPanel from './components/EducationPanel';
 import CountrySearch from './components/CountrySearch';
 import CAChart from './components/CAChart';
@@ -86,10 +87,12 @@ export default function App() {
   function addCACountry(country) {
     if (caData[country.code] || Object.keys(caData).length >= 15) return;
     const colorIndex = caOrder.length % COLORS.length;
+    track('ca_country_added', { country_code: country.code, country_name: country.name });
     loadCA(country.code, country.name, COLORS[colorIndex]);
   }
 
   function removeCACountry(code) {
+    track('ca_country_removed', { country_code: code, country_name: caData[code]?.name });
     setCAData(prev => {
       const next = { ...prev };
       delete next[code];
@@ -100,6 +103,7 @@ export default function App() {
 
   async function addSICountry(country) {
     if (siCards.find(c => c.code === country.code)) return;
+    track('si_country_added', { country_code: country.code, country_name: country.name });
     const card = { code: country.code, name: country.name, savings: [], investment: [], loading: true, error: null };
     setSiCards(prev => [...prev, card]);
     try {
@@ -120,6 +124,8 @@ export default function App() {
   }
 
   function removeSICard(code) {
+    const card = siCards.find(c => c.code === code);
+    track('si_country_removed', { country_code: code, country_name: card?.name });
     setSiCards(prev => prev.filter(c => c.code !== code));
   }
 

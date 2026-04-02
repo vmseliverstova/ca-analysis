@@ -4,6 +4,7 @@ import {
   Legend, ResponsiveContainer, ReferenceLine, ReferenceArea,
 } from 'recharts';
 import { CRISIS_EVENTS } from '../data/crisisEvents';
+import { track } from '../analytics';
 
 export const COLORS = [
   '#2563eb', '#dc2626', '#16a34a', '#d97706', '#7c3aed',
@@ -92,7 +93,10 @@ export default function CAChart({ caData }) {
           <input
             type="checkbox"
             checked={showCrisis}
-            onChange={e => setShowCrisis(e.target.checked)}
+            onChange={e => {
+              setShowCrisis(e.target.checked);
+              track('crisis_toggled', { enabled: e.target.checked });
+            }}
             style={{ accentColor: '#2563eb' }}
           />
           Show crisis periods
@@ -127,7 +131,10 @@ export default function CAChart({ caData }) {
               x2={ev.x2}
               fill={ev.fill}
               stroke="none"
-              onClick={() => setActiveEvent(ev)}
+              onClick={() => {
+                setActiveEvent(ev);
+                track('crisis_clicked', { crisis_id: ev.id, crisis_title: ev.title });
+              }}
               style={{ cursor: 'pointer' }}
               label={{ value: ev.label, position: 'insideTopLeft', fontSize: 10, fill: '#6b7280', dy: 2 }}
             />

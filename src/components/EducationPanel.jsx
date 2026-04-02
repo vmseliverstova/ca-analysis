@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { track } from '../analytics';
 
 export default function EducationPanel() {
   const [open, setOpen] = useState(false);
@@ -12,7 +13,7 @@ export default function EducationPanel() {
       overflow: 'hidden',
     }}>
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen(o => { if (!o) track('education_panel_opened'); return !o; })}
         style={{
           width: '100%',
           display: 'flex',
