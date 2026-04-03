@@ -1,4 +1,4 @@
-const BASE = 'https://api.worldbank.org/v2';
+const BASE = import.meta.env.DEV ? 'https://api.worldbank.org/v2' : '/api/worldbank';
 
 // In-memory cache: key = `${iso2}:${indicator}` => data array
 const cache = {};
