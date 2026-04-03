@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchCountries, fetchCA, fetchSavings, fetchInvestment } from './api/worldbank';
+import { fetchCountries, fetchCA, fetchSavings, fetchInvestment, preloadCountries } from './api/worldbank';
 import { COLORS } from './components/CAChart';
 import { track } from './analytics';
 import EducationPanel from './components/EducationPanel';
@@ -62,6 +62,9 @@ export default function App() {
 
   // S/I chart state: [{ code, name, savings, investment, loading, error }]
   const [siCards, setSiCards] = useState([]);
+
+  // Preload data for common countries in the background
+  useEffect(() => { preloadCountries(); }, []);
 
   // Load country list
   useEffect(() => {
