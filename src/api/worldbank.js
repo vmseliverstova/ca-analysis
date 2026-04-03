@@ -64,13 +64,34 @@ export async function fetchInvestment(iso2) {
 }
 
 const PRELOAD_CODES = ['FR', 'DE', 'US', 'BR', 'CN', 'IN', 'SA', 'JP'];
+const PRELOAD_INDICATORS = [
+  'BN.CAB.XOKA.GD.ZS',
+  'NY.GNS.ICTR.ZS',
+  'NE.GDI.TOTL.ZS',
+];
+
+async function preloadOne(iso2, indicator) {
+  const key = `${iso2}:${indicator}`;
+  if (cache[key] || inFlight[key]) return;
+  const url = `${BASE}/country/${iso2}/indicator/${indicator}?date=2000:2023&format=json&per_page=100`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const json = await res.json();
+    cache[key] = (json[1] || [])
+      .filter(d => d.value !== null)
+      .map(d => ({ year: parseInt(d.date, 10), value: d.value }))
+      .sort((a, b) => a.year - b.year);
+  } catch {}
+}
 
 export async function preloadCountries() {
+  // Wait for default countries to load first
+  await new Promise(r => setTimeout(r, 2000));
   for (const iso2 of PRELOAD_CODES) {
-    await Promise.allSettled([
-      fetchCA(iso2),
-      fetchSavings(iso2),
-      fetchInvestment(iso2),
-    ]);
+    for (const indicator of PRELOAD_INDICATORS) {
+      await preloadOne(iso2, indicator);
+      await new Promise(r => setTimeout(r, 150));
+    }
   }
 }
