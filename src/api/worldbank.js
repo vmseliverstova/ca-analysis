@@ -65,10 +65,12 @@ export async function fetchInvestment(iso2) {
 
 const PRELOAD_CODES = ['FR', 'DE', 'US', 'BR', 'CN', 'IN', 'SA', 'JP'];
 
-export function preloadCountries() {
+export async function preloadCountries() {
   for (const iso2 of PRELOAD_CODES) {
-    fetchCA(iso2).catch(() => {});
-    fetchSavings(iso2).catch(() => {});
-    fetchInvestment(iso2).catch(() => {});
+    await Promise.allSettled([
+      fetchCA(iso2),
+      fetchSavings(iso2),
+      fetchInvestment(iso2),
+    ]);
   }
 }
