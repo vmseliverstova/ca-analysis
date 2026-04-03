@@ -121,7 +121,7 @@ export default function App() {
   async function addSICountry(country) {
     if (siCards.find(c => c.code === country.code)) return;
     track('si_country_added', { country_code: country.code, country_name: country.name });
-    const card = { code: country.code, name: country.name, savings: [], investment: [], loading: true, error: null };
+    const card = { code: country.code, name: country.name, savings: [], investment: [], loading: true, error: null, retryCount: 0 };
     setSiCards(prev => [...prev, card]);
     try {
       const [savings, investment] = await Promise.all([
@@ -150,12 +150,12 @@ export default function App() {
     const card = siCards.find(c => c.code === code);
     if (!card) return;
     setSiCards(prev => prev.map(c =>
-      c.code === code ? { ...c, loading: true, error: null } : c
+      c.code === code ? { ...c, loading: true, error: null, retryCount: c.retryCount + 1 } : c
     ));
     try {
       const [savings, investment] = await Promise.all([
-        fetchSavings(code),
-        fetchInvestment(code),
+        fetchSavings(code, 1),
+        fetchInvestment(code, 1),
       ]);
       setSiCards(prev => prev.map(c =>
         c.code === code ? { ...c, savings, investment, loading: false } : c
@@ -299,6 +299,7 @@ export default function App() {
               error={card.error}
               onRemove={() => removeSICard(card.code)}
               onRetry={() => retrySICountry(card.code)}
+              retryCount={card.retryCount}
             />
           ))}
         </div>

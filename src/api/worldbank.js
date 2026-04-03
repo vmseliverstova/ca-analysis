@@ -32,13 +32,13 @@ async function fetchWithRetry(url, retries = 3, timeoutMs = 8000) {
   throw new Error(`Failed to fetch ${url} after ${retries} attempts`);
 }
 
-function fetchIndicator(iso2, indicator) {
+function fetchIndicator(iso2, indicator, maxAttempts = 3) {
   const key = `${iso2}:${indicator}`;
   if (cache[key]) return Promise.resolve(cache[key]);
   if (inFlight[key]) return inFlight[key];
 
   const url = `${BASE}/country/${iso2}/indicator/${indicator}?date=2000:2023&format=json&per_page=100`;
-  const promise = fetchWithRetry(url)
+  const promise = fetchWithRetry(url, maxAttempts)
     .then(res => res.json())
     .then(json => {
       const data = (json[1] || [])
@@ -50,7 +50,7 @@ function fetchIndicator(iso2, indicator) {
       return data;
     })
     .catch(err => {
-      delete inFlight[key]; // clear so user-triggered retries can proceed
+      delete inFlight[key];
       throw err;
     });
 
@@ -62,12 +62,12 @@ export async function fetchCA(iso2) {
   return fetchIndicator(iso2, 'BN.CAB.XOKA.GD.ZS');
 }
 
-export async function fetchSavings(iso2) {
-  return fetchIndicator(iso2, 'NY.GNS.ICTR.ZS');
+export async function fetchSavings(iso2, maxAttempts = 3) {
+  return fetchIndicator(iso2, 'NY.GNS.ICTR.ZS', maxAttempts);
 }
 
-export async function fetchInvestment(iso2) {
-  return fetchIndicator(iso2, 'NE.GDI.TOTL.ZS');
+export async function fetchInvestment(iso2, maxAttempts = 3) {
+  return fetchIndicator(iso2, 'NE.GDI.TOTL.ZS', maxAttempts);
 }
 
 const PRELOAD_CODES = ['FR', 'DE', 'US', 'BR', 'CN', 'IN', 'SA', 'JP'];
