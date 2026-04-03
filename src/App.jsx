@@ -146,6 +146,27 @@ export default function App() {
     setSiCards(prev => prev.filter(c => c.code !== code));
   }
 
+  async function retrySICountry(code) {
+    const card = siCards.find(c => c.code === code);
+    if (!card) return;
+    setSiCards(prev => prev.map(c =>
+      c.code === code ? { ...c, loading: true, error: null } : c
+    ));
+    try {
+      const [savings, investment] = await Promise.all([
+        fetchSavings(code),
+        fetchInvestment(code),
+      ]);
+      setSiCards(prev => prev.map(c =>
+        c.code === code ? { ...c, savings, investment, loading: false } : c
+      ));
+    } catch {
+      setSiCards(prev => prev.map(c =>
+        c.code === code ? { ...c, loading: false, error: `Failed to load data for ${card.name}` } : c
+      ));
+    }
+  }
+
   const caLoaded = Object.fromEntries(
     Object.entries(caData).filter(([, v]) => !v.loading && !v.error && v.data.length > 0)
   );
@@ -200,8 +221,16 @@ export default function App() {
           )}
           {Object.entries(caData)
             .filter(([, v]) => v.error)
-            .map(([code, { error }]) => (
-              <p key={code} style={{ fontSize: 13, color: '#dc2626', margin: '0 0 4px' }}>{error}</p>
+            .map(([code, { name, color, error }]) => (
+              <div key={code} style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 4px' }}>
+                <p style={{ fontSize: 13, color: '#dc2626', margin: 0 }}>{error}</p>
+                <button
+                  onClick={() => loadCA(code, name, color)}
+                  style={{ fontSize: 12, color: '#6366f1', background: 'none', border: '1px solid #6366f1', borderRadius: 6, padding: '2px 8px', cursor: 'pointer' }}
+                >
+                  Retry
+                </button>
+              </div>
             ))}
 
           {/* Search */}
@@ -269,6 +298,7 @@ export default function App() {
               loading={card.loading}
               error={card.error}
               onRemove={() => removeSICard(card.code)}
+              onRetry={() => retrySICountry(card.code)}
             />
           ))}
         </div>

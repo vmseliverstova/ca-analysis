@@ -40,7 +40,7 @@ function CustomTooltip({ active, payload, label }) {
   );
 }
 
-export default function SIChart({ countryName, savings, investment, loading, error, onRemove }) {
+export default function SIChart({ countryName, savings, investment, loading, error, onRemove, onRetry }) {
   const hasData = savings.length > 0 || investment.length > 0;
   const chartData = buildSIData(savings, investment);
 
@@ -84,8 +84,14 @@ export default function SIChart({ countryName, savings, investment, loading, err
         </div>
       )}
       {!loading && error && (
-        <div style={{ textAlign: 'center', padding: '30px 0', color: '#dc2626', fontSize: 14 }}>
-          {error}
+        <div style={{ textAlign: 'center', padding: '30px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <span style={{ color: '#dc2626', fontSize: 14 }}>{error}</span>
+          <button
+            onClick={onRetry}
+            style={{ fontSize: 13, color: '#6366f1', background: 'none', border: '1px solid #6366f1', borderRadius: 6, padding: '4px 14px', cursor: 'pointer' }}
+          >
+            Retry
+          </button>
         </div>
       )}
       {!loading && !error && !hasData && (
