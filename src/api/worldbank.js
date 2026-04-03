@@ -16,10 +16,17 @@ export async function fetchCountries() {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-async function fetchWithRetry(url, retries = 3) {
+async function fetchWithRetry(url, retries = 3, timeoutMs = 8000) {
   for (let attempt = 0; attempt < retries; attempt++) {
-    const res = await fetch(url);
-    if (res.ok) return res;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+      if (res.ok) return res;
+    } catch {
+      clearTimeout(timer);
+    }
     if (attempt < retries - 1) await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
   }
   throw new Error(`Failed to fetch ${url} after ${retries} attempts`);
