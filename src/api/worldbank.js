@@ -1,4 +1,4 @@
-const BASE = import.meta.env.DEV ? 'https://api.worldbank.org/v2' : '/api/worldbank';
+const BASE = '/api/worldbank';
 
 // In-memory cache: key = `${iso2}:${indicator}` => data array
 const cache = {};
@@ -14,13 +14,21 @@ export async function fetchCountries() {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+async function fetchWithRetry(url, retries = 3) {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    const res = await fetch(url);
+    if (res.ok) return res;
+    if (attempt < retries - 1) await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+  }
+  throw new Error(`Failed to fetch ${url} after ${retries} attempts`);
+}
+
 async function fetchIndicator(iso2, indicator) {
   const key = `${iso2}:${indicator}`;
   if (cache[key]) return cache[key];
 
   const url = `${BASE}/country/${iso2}/indicator/${indicator}?date=2000:2023&format=json&per_page=100`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch ${indicator} for ${iso2}`);
+  const res = await fetchWithRetry(url);
   const json = await res.json();
 
   const raw = json[1] || [];
