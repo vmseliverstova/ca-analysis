@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  const { wbpath, ...queryParams } = req.query;
+  const { wbpath, path: _path, ...queryParams } = req.query;
   const path = Array.isArray(wbpath) ? wbpath.join('/') : (wbpath || '');
 
   const qs = new URLSearchParams(queryParams).toString();
