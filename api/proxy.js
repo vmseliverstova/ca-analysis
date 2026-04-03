@@ -22,6 +22,7 @@ export default async function handler(req, res) {
     .status(response.status)
     .setHeader('Content-Type', response.headers.get('content-type') || 'application/json')
     .setHeader('Access-Control-Allow-Origin', '*')
+    .setHeader('Cache-Control', 's-maxage=604800, stale-while-revalidate=604800')
     .setHeader('X-Timing-Fetch-Ms', fetchMs)
     .setHeader('X-Timing-Read-Ms', readMs)
     .setHeader('X-Timing-Total-Ms', fetchMs + readMs)
