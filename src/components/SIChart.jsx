@@ -71,8 +71,16 @@ export default function SIChart({ countryName, savings, investment, loading, err
       </div>
 
       {loading && (
-        <div style={{ textAlign: 'center', padding: '40px 0', color: '#6b7280', fontSize: 14 }}>
-          Fetching data…
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, padding: '40px 0', color: '#6b7280', fontSize: 14 }}>
+          <div style={{
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
+            border: '3px solid #6366f122',
+            borderTopColor: '#6366f1',
+            animation: 'spin 0.7s linear infinite',
+          }} />
+          <span>Fetching data…</span>
         </div>
       )}
       {!loading && error && (

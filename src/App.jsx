@@ -14,6 +14,20 @@ const DEFAULT_COUNTRIES = [
   { code: 'SA', name: 'Saudi Arabia' },
 ];
 
+function Spinner({ size = 28, color = '#6366f1' }) {
+  return (
+    <div style={{
+      width: size,
+      height: size,
+      borderRadius: '50%',
+      border: `3px solid ${color}22`,
+      borderTopColor: color,
+      animation: 'spin 0.7s linear infinite',
+      flexShrink: 0,
+    }} />
+  );
+}
+
 function CountryTag({ name, color, onRemove }) {
   return (
     <span style={{
@@ -174,9 +188,12 @@ export default function App() {
 
           {/* Loading/error messages */}
           {loadingCACodes.length > 0 && (
-            <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 8px' }}>
-              Fetching… {loadingCACodes.map(code => caData[code]?.name).join(', ')}
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 0 10px' }}>
+              <Spinner size={20} />
+              <span style={{ fontSize: 13, color: '#6b7280' }}>
+                Fetching {loadingCACodes.map(code => caData[code]?.name).join(', ')}…
+              </span>
+            </div>
           )}
           {Object.entries(caData)
             .filter(([, v]) => v.error)
@@ -205,8 +222,11 @@ export default function App() {
           {Object.keys(caLoaded).length > 0
             ? <CAChart caData={caLoaded} />
             : (
-              <div style={{ background: '#fff', borderRadius: 12, padding: 48, textAlign: 'center', color: '#9ca3af', fontSize: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-                {Object.keys(caData).length === 0 ? 'Add countries to see the chart' : 'Loading data…'}
+              <div style={{ background: '#fff', borderRadius: 12, padding: 48, textAlign: 'center', color: '#9ca3af', fontSize: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+                {Object.keys(caData).length === 0
+                  ? 'Add countries to see the chart'
+                  : <><Spinner size={36} /><span>Loading data…</span></>
+                }
               </div>
             )
           }
