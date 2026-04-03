@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
-  const { path: pathSegments, ...queryParams } = req.query;
-  const path = Array.isArray(pathSegments) ? pathSegments.join('/') : (pathSegments || '');
+  const { wbpath, ...queryParams } = req.query;
+  const path = Array.isArray(wbpath) ? wbpath.join('/') : (wbpath || '');
 
   const qs = new URLSearchParams(queryParams).toString();
   const url = `https://api.worldbank.org/v2/${path}${qs ? '?' + qs : ''}`;

@@ -1,1 +1,8 @@
-{}
+{
+  "rewrites": [
+    {
+      "source": "/api/worldbank/:path(.*)",
+      "destination": "/api/proxy?wbpath=:path"
+    }
+  ]
+}
