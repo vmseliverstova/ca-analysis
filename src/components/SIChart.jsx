@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   Legend, ResponsiveContainer, ReferenceLine,
@@ -5,15 +6,18 @@ import {
 
 const ALL_YEARS = Array.from({ length: 24 }, (_, i) => 2000 + i);
 
-function buildSIData(savings, investment) {
+function buildSIData(savings, investment, ca, showCA) {
   return ALL_YEARS.map(year => {
     const s = savings.find(d => d.year === year);
     const i = investment.find(d => d.year === year);
-    return {
+    const c = ca.find(d => d.year === year);
+    const row = {
       year,
       Savings: s ? parseFloat(s.value.toFixed(2)) : null,
       Investment: i ? parseFloat(i.value.toFixed(2)) : null,
     };
+    if (showCA) row['Current account'] = c ? parseFloat(c.value.toFixed(2)) : null;
+    return row;
   });
 }
 
@@ -40,9 +44,10 @@ function CustomTooltip({ active, payload, label }) {
   );
 }
 
-export default function SIChart({ countryName, savings, investment, loading, error, onRemove, onRetry, retryCount = 0 }) {
+export default function SIChart({ countryName, savings, investment, ca = [], caLoading, loading, error, onRemove, onRetry, retryCount = 0 }) {
+  const [showCA, setShowCA] = useState(false);
   const hasData = savings.length > 0 || investment.length > 0;
-  const chartData = buildSIData(savings, investment);
+  const chartData = buildSIData(savings, investment, ca, showCA);
 
   return (
     <div style={{
@@ -105,6 +110,17 @@ export default function SIChart({ countryName, savings, investment, loading, err
       )}
       {!loading && !error && hasData && (
         <>
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#374151', cursor: 'pointer', marginBottom: 10, userSelect: 'none' }}>
+            <input
+              type="checkbox"
+              checked={showCA}
+              onChange={e => setShowCA(e.target.checked)}
+              style={{ cursor: 'pointer' }}
+            />
+            Show current account balance
+            {showCA && caLoading && <span style={{ color: '#9ca3af', fontSize: 12 }}>(loading…)</span>}
+          </label>
+
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={chartData} margin={{ top: 6, right: 20, left: 0, bottom: 6 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -115,11 +131,21 @@ export default function SIChart({ countryName, savings, investment, loading, err
               <ReferenceLine y={0} stroke="#94a3b8" strokeDasharray="4 4" strokeWidth={1} />
               <Line type="monotone" dataKey="Savings" stroke="#1abc9c" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} connectNulls={false} />
               <Line type="monotone" dataKey="Investment" stroke="#e74c3c" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} connectNulls={false} />
+              {showCA && (
+                <Line type="monotone" dataKey="Current account" stroke="#374151" strokeWidth={2} strokeDasharray="5 4" dot={false} activeDot={{ r: 4 }} connectNulls={false} />
+              )}
             </LineChart>
           </ResponsiveContainer>
-          <p style={{ margin: '8px 0 0', fontSize: 12, color: '#9ca3af', textAlign: 'center', fontStyle: 'italic' }}>
-            The gap between savings and investment approximates the current account balance
-          </p>
+
+          {showCA ? (
+            <p style={{ margin: '8px 0 0', fontSize: 12, color: '#9ca3af', textAlign: 'center', fontStyle: 'italic' }}>
+              The current account balance roughly equals the gap between savings and investment (CA ≈ S − I). Differences arise because this chart uses domestic savings rather than national savings.
+            </p>
+          ) : (
+            <p style={{ margin: '8px 0 0', fontSize: 12, color: '#9ca3af', textAlign: 'center', fontStyle: 'italic' }}>
+              The gap between savings and investment approximates the current account balance
+            </p>
+          )}
         </>
       )}
     </div>

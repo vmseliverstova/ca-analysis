@@ -121,8 +121,12 @@ export default function App() {
   async function addSICountry(country) {
     if (siCards.find(c => c.code === country.code)) return;
     track('si_country_added', { country_code: country.code, country_name: country.name });
-    const card = { code: country.code, name: country.name, savings: [], investment: [], loading: true, error: null, retryCount: 0 };
+    const card = { code: country.code, name: country.name, savings: [], investment: [], ca: [], loading: true, caLoading: true, error: null, retryCount: 0 };
     setSiCards(prev => [...prev, card]);
+    // Fetch S/I and CA in parallel; CA likely already cached from the top chart
+    fetchCA(country.code)
+      .then(ca => setSiCards(prev => prev.map(c => c.code === country.code ? { ...c, ca, caLoading: false } : c)))
+      .catch(() => setSiCards(prev => prev.map(c => c.code === country.code ? { ...c, caLoading: false } : c)));
     try {
       const [savings, investment] = await Promise.all([
         fetchSavings(country.code),
@@ -267,7 +271,7 @@ export default function App() {
         {/* S/I Section */}
         <div style={{ marginTop: 40 }}>
           <h2 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 600, color: '#1e293b' }}>
-            Savings vs Investment Breakdown
+            Savings vs Investment Breakdown (% of GDP)
           </h2>
           <p style={{ margin: '0 0 16px', fontSize: 14, color: '#6b7280' }}>
             Add countries to see their savings and investment dynamics
@@ -295,6 +299,8 @@ export default function App() {
               countryName={card.name}
               savings={card.savings}
               investment={card.investment}
+              ca={card.ca}
+              caLoading={card.caLoading}
               loading={card.loading}
               error={card.error}
               onRemove={() => removeSICard(card.code)}
